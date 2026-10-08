@@ -16,6 +16,12 @@ A personal medical document organizer for Android, iOS, and web. Three screens: 
 
 One account represents one person's records. Demo records are fictional and kept only in memory. Offline medical storage, caregiver accounts, automated clinical interpretation, and app-store submission are outside this MVP.
 
+## Deployment status
+
+The private website is [Folio Health](https://folio-health-records.frostylarch2.chatgpt.site). Its client build uses the dedicated Supabase project `klseftzdlekhpwnazaal` in Ireland. The initial migration was applied on 2026-10-08: all seven tables have RLS, the document bucket is private, and anonymous snapshot access and client worker access are denied. Production, localhost:8081, and native authentication redirects are configured; TOTP and email confirmation are enabled, with a minimum password length of 12.
+
+The OCR worker is not running on a cloud host yet. Until it is started, uploaded documents remain queued for extraction. Account/email/TOTP and complete upload processing still need live verification. Signed mobile builds and custom email delivery are also pending.
+
 ## Run
 
 Use Node.js 24 and pnpm 11.25.0.
