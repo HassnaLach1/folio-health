@@ -1,0 +1,12 @@
+node_modules/
+.expo/
+dist/
+.env
+.env.local
+*.log
+test-results/
+android/
+ios/
+.cache/
+.sites-runtime/
+*.tar.gz

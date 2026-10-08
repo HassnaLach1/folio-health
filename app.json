@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Folio Health",
+    "slug": "folio-health",
+    "scheme": "foliohealth",
+    "version": "0.1.0",
+    "orientation": "default",
+    "userInterfaceStyle": "light",
+    "ios": { "supportsTablet": true, "bundleIdentifier": "com.foliohealth.app" },
+    "android": { "package": "com.foliohealth.app", "permissions": ["CAMERA", "POST_NOTIFICATIONS"], "blockedPermissions": ["android.permission.RECORD_AUDIO"] },
+    "web": { "bundler": "metro", "name": "Folio Health" },
+    "plugins": [
+      ["expo-image-picker", { "cameraPermission": "Scan your medical documents.", "microphonePermission": false }],
+      "expo-document-picker",
+      "expo-secure-store",
+      "expo-notifications"
+    ]
+  }
+}

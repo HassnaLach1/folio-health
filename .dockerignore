@@ -1,0 +1,11 @@
+node_modules
+.git
+.env
+.env.*
+.cache
+.expo
+dist
+preview
+test-results
+.sites-runtime
+*.tar.gz
