@@ -2,7 +2,7 @@
 
 ## How it works
 
-Folio → local Supabase Auth → Google's account chooser → Supabase callback → Folio.
+Folio → Supabase Auth → Google's account chooser → Supabase callback → Folio.
 
 Google verifies identity and supplies the basic name, email, and profile image associated with the Google account. Supabase creates the Folio account on the first Google sign-in and establishes a session on later visits. Existing database ownership rules still apply. Medical documents, birth date, height, and weight are not included in the Google sign-in request. No Gemini/Vertex AI service is used by this integration. Google metadata is not automatically copied into the editable Folio profile.
 
@@ -78,3 +78,12 @@ The frontend implementation can be checked before Google credentials exist. A di
 References: [Supabase Google setup](https://supabase.com/docs/guides/auth/social-login/auth-google), [local secrets configuration](https://supabase.com/docs/guides/local-development/managing-config), [PKCE](https://supabase.com/docs/guides/auth/sessions/pkce-flow), [Google OAuth callbacks](https://developers.google.com/identity/protocols/oauth2/web-server).
 
 Local setup status, 2026-10-13: Google credentials are installed privately and the provider is enabled. End-to-end web sign-in passed: the user completed Google's account chooser, local Supabase recorded a Google identity and session, and Folio opened the authenticated workspace and remained signed in after a browser refresh. Android sign-in has not been tested.
+
+## Deployed AWS sign-in
+
+[Folio Health](https://folio-52.209.35.92.sslip.io/) uses the same Google client, with these additional registered addresses:
+
+- Origin: `https://folio-52.209.35.92.sslip.io`
+- Callback: `https://folio-52.209.35.92.sslip.io/api/auth/v1/callback`
+
+The approved client ID and secret are installed privately in the cloud Auth environment on encrypted storage. The secret is never part of the frontend image. Cloud accounts start fresh. The frontend shows Google sign-in only because email delivery is not configured. After Google sign-in, enroll/verify an authenticator, then complete onboarding. The public Auth settings confirm Google is enabled, and the cloud integration check confirms MFA access policies. The deployed Google button opened Google's account chooser with the correct callback and no redirect mismatch. A real user's deployed Google session and authenticator enrollment remain to be completed by the user; the prior complete Google flow was local. See [AWS operations](deploy/README.md).

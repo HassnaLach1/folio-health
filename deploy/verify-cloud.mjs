@@ -26,7 +26,11 @@ try{
  for(const lines of pages){const page=pdf.addPage([595,842]);lines.forEach((text,i)=>page.drawText(text,{x:35,y:790-i*40,size:15,font}));}
  const bytes=Buffer.from(await pdf.save()),id=randomUUID();
  checked(await app.rpc('begin_upload',{doc:{id,title:'Fictional cloud test',filename:'synthetic-panels.pdf',category:'Other',pages:3,bytes:bytes.length,mime:'application/pdf',checksum:createHash('sha256').update(bytes).digest('hex')}}));
- objectKey=`${userId}/${id}/original`;checked(await app.storage.from('medical-documents').upload(objectKey,bytes,{contentType:'application/pdf'}));checked(await app.rpc('finish_upload',{doc_id:id}));
+ objectKey=`${userId}/${id}/original`;checked(await app.storage.from('medical-documents').upload(objectKey,bytes,{contentType:'application/pdf'}));
+ const signed=checked(await app.storage.from('medical-documents').createSignedUrl(objectKey,60));
+ const original=await fetch(signed.signedUrl);assert.ok(original.ok,'The reviewed original must be reachable over public HTTPS.');
+ assert.equal(createHash('sha256').update(Buffer.from(await original.arrayBuffer())).digest('hex'),createHash('sha256').update(bytes).digest('hex'));
+ checked(await app.rpc('finish_upload',{doc_id:id}));
  let result;
  for(let i=0;i<180;i++){result=checked(await app.rpc('get_snapshot'));const document=result.documents.find(d=>d.id===id);if(document?.status==='review')break;if(document?.status==='failed')throw new Error('Cloud extraction failed');await new Promise(resolve=>setTimeout(resolve,2000));}
  assert.equal(result.documents.find(d=>d.id===id)?.status,'review');
@@ -36,7 +40,7 @@ try{
  assert.equal(kidney.observations.find(o=>o.parameter==='creatinine')?.value,'1.2');
  assert.ok(reports.every(r=>!r.dateReviewed&&r.observations.every(o=>o.review.value==='pending')));
  const audit=checked(await admin.from('extraction_runs').select('engine').eq('document_id',id));assert.ok(audit.some(r=>r.engine.startsWith('bedrock-')),'Cloud test must use Bedrock, not fallback.');
- console.log('CLOUD_PASS: HTTPS, Google provider, private routes, origin check, MFA policy, onboarding persistence, upload, role-based Haiku, three pages, two panels, needs-review status.');
+ console.log('CLOUD_PASS: HTTPS, Google provider, private routes, origin check, MFA policy, onboarding persistence, upload, original download, role-based Haiku, three pages, two panels, needs-review status.');
 }finally{
  if(objectKey)checked(await admin.storage.from('medical-documents').remove([objectKey]));
  if(userId)checked(await admin.auth.admin.deleteUser(userId));
