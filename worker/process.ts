@@ -17,7 +17,14 @@ export async function extractLocal(bytes: Uint8Array, mime: string): Promise<str
   const output: string[] = [];
   for (let n=1;n<=pdf.numPages;n++) {
    const page=await pdf.getPage(n);const content=await page.getTextContent();
-   const text=content.items.map(item=>'str' in item?item.str+('hasEOL' in item&&item.hasEOL?'\n':' '):'').join('');
+   let text='', previousY:number|null=null;
+   for(const item of content.items){
+    if(!('str' in item))continue;
+    const y='transform' in item ? item.transform[5] : undefined;
+    if(previousY!==null&&y!==undefined&&Math.abs(y-previousY)>3&&!text.endsWith('\n'))text+='\n';
+    text+=item.str+(item.hasEOL?'\n':' ');
+    if(y!==undefined)previousY=y;
+   }
    if(text.replace(/\s/g,'').length>40){output.push(text);continue;}
    const initial=page.getViewport({scale:1.8});const scale=initial.width*initial.height>8000000?1.8*Math.sqrt(8000000/(initial.width*initial.height)):1.8;
    const viewport=page.getViewport({scale});const canvas=createCanvas(Math.ceil(viewport.width),Math.ceil(viewport.height));

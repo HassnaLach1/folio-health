@@ -3,6 +3,8 @@ node_modules/
 dist/
 .env
 .env.local
+.env.hosted
+.env.worker.local
 *.log
 test-results/
 android/
@@ -10,3 +12,10 @@ ios/
 .cache/
 .sites-runtime/
 *.tar.gz
+preview/
+.aws/
+*.pem
+*.key
+deploy/.env.production
+deploy/supabase/volumes/db/data/
+deploy/supabase/volumes/storage/

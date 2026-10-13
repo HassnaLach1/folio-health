@@ -9,3 +9,9 @@ preview
 test-results
 .sites-runtime
 *.tar.gz
+deploy
+**/.env
+**/.env.*
+.aws
+*.pem
+*.key

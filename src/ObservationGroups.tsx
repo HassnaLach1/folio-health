@@ -1,0 +1,8 @@
+import React from 'react';
+import {Pressable,Text,View} from 'react-native';
+import {Trash2} from 'lucide-react-native';
+import {groupObservations,Observation,parameterKey} from './domain';
+import {Field,colors,styles} from './ui';
+export default function ObservationGroups({observations,onEdit,onDelete}:{observations:Observation[];onEdit:(index:number,patch:Partial<Observation>)=>void;onDelete:(index:number)=>void}){
+ return <>{groupObservations(observations).map(group=><View key={observations[group.indices[0]!]!.id} style={[styles.card,{padding:14,gap:14}]}><Field label="Parameter" value={group.label} onChange={label=>group.indices.forEach(index=>onEdit(index,{label,parameter:parameterKey(label),review:{value:'pending',unit:'pending',range:'pending'}}))}/>{group.indices.map((index,unitIndex)=>{const item=observations[index]!;return <View key={item.id} style={{gap:8,borderTopWidth:unitIndex?1:0,borderColor:colors.border,paddingTop:unitIndex?12:0}}><View style={styles.between}><Text style={styles.muted}>{unitIndex?'Alternative unit':'Primary measurement'}</Text><Pressable accessibilityRole="button" accessibilityLabel={`Delete ${item.label} ${item.unit}`} onPress={()=>onDelete(index)}><Trash2 size={18} color={colors.red}/></Pressable></View><View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}><Field label="Measured value" value={item.value} onChange={value=>onEdit(index,{value,review:{...item.review,value:'pending'}})}/><Field label="Units" value={item.unit} onChange={unit=>onEdit(index,{unit,review:{...item.review,unit:'pending'}})}/><Field label="Reference range" value={item.range} onChange={range=>onEdit(index,{range,review:{...item.review,range:'pending'}})}/></View></View>;})}</View>)}</>;
+}
