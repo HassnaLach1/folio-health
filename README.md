@@ -228,3 +228,7 @@ Verification: 31 tests and TypeScript passed; compact care-field normalization a
 
 
 Final live verification: both the two-report imaging comparison and the overall imaging-history conclusion completed through the running Bedrock worker and appeared in the browser. They use two short source-summary sentences, with one separate disclaimer per summary. `202610130005_regenerate_source_summaries.sql` marks prior generated-cache entries for regeneration without changing source reports. Final browser checks confirmed one displayed name each for urea, creatinine and fasting glucose, with their individual measurements and ranges grouped underneath. All 31 regression tests and TypeScript passed. The final native print-dialog PDF save and physical phone/APK remain unverified.
+
+## AWS Docker deployment
+
+The complete source backup is on [codex/folio-full-backup](https://github.com/HassnaLach1/folio-health/tree/codex/folio-full-backup). AWS deployment preparation lives in [deploy/README.md](deploy/README.md): a fresh self-hosted Supabase stack, Folio web/worker images, HTTPS proxy, private internal services and a CloudFormation host template sized for a $50 monthly target. Local accounts and records are not imported. Docker images and the isolated empty stack have passed integration checks; actual AWS hosting is pending launch approval and live verification. Secrets, local screenshots and database caches are excluded from Git and build contexts.

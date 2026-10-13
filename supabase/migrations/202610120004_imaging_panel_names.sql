@@ -1,7 +1,7 @@
 -- Older imaging records may have a printed name but no generated panel code.
 create function public.imaging_panel_key(code text,panel text) returns text
 language sql immutable set search_path='' as $$
- select coalesce(nullif(code,''),trim(both '_' from regexp_replace(lower(translate(trim(panel),'ÀÁÂÃÄÅàáâãäåÈÉÊËèéêëÌÍÎÏìíîïÒÓÔÕÖòóôõöÙÚÛÜùúûüÇçÑñ','AAAAAAaaaaaaEEEEeeeeIIIIiiiiOOOOOoooooUUUUuuuuCcNn')),'[^a-z0-9]+','_','g')));
+ select coalesce(nullif(code,''),trim(both '_' from regexp_replace(lower(translate(trim(panel),'Ã€ÃÃ‚ÃƒÃ„Ã…Ã Ã¡Ã¢Ã£Ã¤Ã¥ÃˆÃ‰ÃŠÃ‹Ã¨Ã©ÃªÃ«ÃŒÃÃÃÃ¬Ã­Ã®Ã¯Ã’Ã“Ã”Ã•Ã–Ã²Ã³Ã´ÃµÃ¶Ã™ÃšÃ›ÃœÃ¹ÃºÃ»Ã¼Ã‡Ã§Ã‘Ã±','AAAAAAaaaaaaEEEEeeeeIIIIiiiiOOOOOoooooUUUUuuuuCcNn')),'[^a-z0-9]+','_','g')));
 $$;
 revoke all on function public.imaging_panel_key(text,text) from public,anon,authenticated;
 create or replace function public.request_imaging_comparison(earlier uuid,later uuid) returns uuid
