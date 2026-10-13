@@ -1,8 +1,8 @@
 # AWS deployment
 
-Status: source is backed up on `codex/folio-full-backup`; web and worker Docker images are built; an isolated fresh Supabase stack passed integration checks. The AWS template passed CloudFormation validation. AWS resources have not been launched yet.
+Status: source is backed up on `codex/folio-full-backup`; web and worker Docker images are built; an isolated fresh Supabase stack passed integration checks. The AWS template passed CloudFormation validation. The first t3a.medium launch was rejected by AWS Free Plan eligibility. The approved replacement stack folio-health-free uses t3.small and reuses the two retained ECR repositories. Live verification is in progress.
 
-Use one Amazon Linux 2023 EC2 `t3a.medium` in Ireland, Docker Compose, an encrypted 40 GB gp3 disk and one Elastic IP. The verified EC2 price on 2026-10-13 is $0.0408/hour ($29.78 at 730 hours); disk and IPv4 bring the infrastructure estimate to about $37/month, plus ECR storage, transfer and Bedrock usage. The requested $50 monthly budget is a cost monitor, not a spending cap. T3 CPU credits use standard mode to avoid unlimited CPU surplus charges.
+Use one Amazon Linux 2023 EC2 `t3.small` in Ireland, Docker Compose, an encrypted 40 GB gp3 disk and one Elastic IP. The verified EC2 price on 2026-10-13 is $0.0228/hour ($16.64 at 730 hours); disk and IPv4 bring the infrastructure estimate to about $24/month, plus ECR storage, transfer and Bedrock usage. The requested $50 monthly budget is a cost monitor, not a spending cap. T3 CPU credits use standard mode to avoid unlimited CPU surplus charges.
 
 `ec2.yaml` creates the host, firewall, persistent IP, two private encrypted ECR repositories, an instance role and the $50 cost budget. The instance role permits Systems Manager administration, pulls from only the two Folio repositories, and invocation of only the EU Haiku 4.5 profile and its six verified destination model ARNs. It does not store a long-lived AWS key. Containers can use the host's instance credentials, so the entire host remains one trust boundary.
 
@@ -10,7 +10,7 @@ The hostname can initially be `folio-PUBLIC_IP.sslip.io`, a free DNS name resolv
 
 ## Components and access
 
-The pinned official Supabase `self-hosted/v0.8.2` configuration supplies database, Auth, REST, Storage, imgproxy, postgres-meta and Studio images. Folio adds its web and worker images, a schema initialization job and Caddy. Realtime, Edge Functions and the database pooler are disabled because Folio does not use them here. The local Supabase CLI stack is not deployed.
+The pinned official Supabase `self-hosted/v0.8.2` configuration supplies database, Auth, REST, Storage, imgproxy, postgres-meta and Studio images. Folio adds its web and worker images, a schema initialization job and Caddy. `compose.free-tier.yaml` runs only database, Auth, REST and Storage continuously. Studio/meta use the optional admin profile; image transformation, Realtime, Edge Functions and the pooler stay off. Memory and connection pools are bounded for the 2 GB server, which also has 2 GB of swap on its encrypted EBS disk. This configuration targets a low-traffic MVP. The local Supabase CLI stack is not deployed.
 
 Only TCP 80 (certificate validation and HTTPS redirects) and 443 are public. The worker, gateway, REST, Auth, Storage, database and meta have no public host ports. Studio listens on server loopback port 54323 and is available through an authenticated Systems Manager tunnel. There is no public SSH port. Caddy exposes only `/api/auth/v1/`, `/api/rest/v1/` and `/api/storage/v1/`, rejects unrelated browser origins, and forwards the web app at `/`. Account authentication, TOTP and owner policies enforce medical record access. A web browser connects from the user's network, so API restriction to the frontend server's IP would break the app; Origin/CORS is an additional browser control, not authentication.
 
@@ -27,7 +27,8 @@ Commands run from the repository root on the server. They require Docker Compose
 
 ```sh
 docker compose --env-file deploy/.env.production -p folio-cloud \
-  -f deploy/supabase/docker-compose.yml -f deploy/compose.aws.yaml up -d
+  -f deploy/supabase/docker-compose.yml -f deploy/compose.aws.yaml \
+  -f deploy/compose.free-tier.yaml up -d
 ```
 
 The migration job waits for Auth and Storage schema initialization. The worker and web wait for application migrations; the proxy waits for healthy web/gateway. No medical fixtures are inserted.
@@ -35,5 +36,7 @@ The migration job waits for Auth and Storage schema initialization. The worker a
 Use the same Compose arguments with `ps` to inspect status and `stop` to suspend services. Restarting the containers preserves volumes. Stopping an EC2 server stops compute charges but disk and allocated public IP charges continue. The disk and ECR repositories are retained when the CloudFormation stack is deleted. Review and back up cloud records before any volume deletion. This initial deployment has one host, without automatic failover or scheduled backups; arrange backups before relying on it as the sole record archive.
 
 ## Verification
+
+The reduced stack also passed the same integration checks, with roughly 400 MB total container memory after the fictional extraction. Studio can be started temporarily with the admin profile when needed.
 
 The isolated `folio-deploytest` stack uses separate empty volumes and loopback ports 18081/15423; it does not touch the existing local Supabase stack. `verify-local.mjs` uses only fictional data and refuses remote URLs. With the isolated environment loaded, it verified admin-route blocking, foreign-origin rejection, anonymous denial, TOTP enforcement, profile/onboarding persistence, original upload, worker PDF extraction and `review` status. Fictional files/accounts are removed at the end. Both Folio images built successfully. Public HTTPS, cloud Google OAuth and role-based Bedrock processing still require verification after launch.

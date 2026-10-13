@@ -1,6 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Folio Health Docker host in Ireland; no local records are imported.
 Parameters:
+  CreateRepositories:
+    Type: String
+    AllowedValues: ['true','false']
+    Default: 'true'
+    Description: Set false to reuse repositories retained by an earlier failed launch.
   ImageId:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
@@ -9,8 +14,11 @@ Parameters:
   SubnetId:
     Type: AWS::EC2::Subnet::Id
     Description: Public subnet in the selected VPC with an Internet Gateway route.
+Conditions:
+  NewRepositories: !Equals [!Ref CreateRepositories, 'true']
 Resources:
   WebRepository:
+    Condition: NewRepositories
     Type: AWS::ECR::Repository
     DeletionPolicy: Retain
     Properties:
@@ -19,6 +27,7 @@ Resources:
       ImageScanningConfiguration: {ScanOnPush: true}
       EncryptionConfiguration: {EncryptionType: AES256}
   WorkerRepository:
+    Condition: NewRepositories
     Type: AWS::ECR::Repository
     DeletionPolicy: Retain
     Properties:
@@ -47,7 +56,9 @@ Resources:
                 Resource: '*'
               - Effect: Allow
                 Action: [ecr:BatchCheckLayerAvailability,ecr:GetDownloadUrlForLayer,ecr:BatchGetImage]
-                Resource: [!GetAtt WebRepository.Arn,!GetAtt WorkerRepository.Arn]
+                Resource:
+                  - !Sub arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/folio-health-web
+                  - !Sub arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/folio-health-worker
               - Effect: Allow
                 Action: bedrock:InvokeModel
                 Resource:
@@ -74,7 +85,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: !Ref ImageId
-      InstanceType: t3a.medium
+      InstanceType: t3.small
       IamInstanceProfile: !Ref HostProfile
       CreditSpecification: {CPUCredits: standard}
       MetadataOptions: {HttpTokens: required,HttpPutResponseHopLimit: 2,HttpEndpoint: enabled}
@@ -102,6 +113,13 @@ Resources:
           install -m 755 docker-compose-linux-x86_64 /usr/local/lib/docker/cli-plugins/docker-compose
           # Keep installation private until configured and verified.
           chmod 700 /opt/folio
+          # Encrypted EBS also holds a small swap area for bounded extraction peaks.
+          fallocate -l 2G /swapfile
+          chmod 600 /swapfile
+          mkswap /swapfile
+          swapon /swapfile
+          printf '/swapfile swap swap defaults 0 0\n' >> /etc/fstab
+          sysctl -w vm.swappiness=10
   Address:
     Type: AWS::EC2::EIP
     Properties: {Domain: vpc}
@@ -122,5 +140,5 @@ Outputs:
   InstanceId: {Value: !Ref Host}
   PublicIp: {Value: !Ref Address}
   TemporaryHost: {Value: !Sub 'folio-${Address}.sslip.io'}
-  WebImageRepository: {Value: !GetAtt WebRepository.RepositoryUri}
-  WorkerImageRepository: {Value: !GetAtt WorkerRepository.RepositoryUri}
+  WebImageRepository: {Value: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/folio-health-web'}
+  WorkerImageRepository: {Value: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/folio-health-worker'}
