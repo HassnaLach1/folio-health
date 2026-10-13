@@ -52,12 +52,13 @@ const secureStorage = {
   }
 };
 export const supabase = url && key ? createClient(url, key, { auth: { storage: secureStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: false, flowType:'pkce' } }) : null;
-export async function googleSignInAvailable():Promise<boolean>{
-  if(!url||!key)return false;
+export async function loadSignInProviders():Promise<{google:boolean;email:boolean}>{
+  if(!url||!key)return {google:false,email:false};
   const response=await fetch(`${url.replace(/\/$/,'')}/auth/v1/settings`,{headers:{apikey:key}});
   if(!response.ok)throw new Error('Could not check sign-in options.');
-  const settings=await response.json();return settings.external?.google===true;
+  const settings=await response.json();return {google:settings.external?.google===true,email:settings.external?.email===true};
 }
+export async function googleSignInAvailable():Promise<boolean>{return (await loadSignInProviders()).google;}
 export const isDemo = !supabase;
 export async function requestHistoryConclusion(ids:string[]):Promise<string>{
  if(!supabase)throw new Error('AI conclusions need the local backend and Bedrock worker.');

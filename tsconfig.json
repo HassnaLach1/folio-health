@@ -2,5 +2,5 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": { "strict": true, "noUncheckedIndexedAccess": true },
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "deploy/supabase", ".cache"]
 }
