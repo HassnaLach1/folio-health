@@ -1,4 +1,30 @@
-# Folio Health
+# Medical Folio / Folio Health
+
+A personal project by **Hassna Ait Lachgar**, exploring how software can make medical documents easier to organize and understand.
+
+## Project overview
+
+Medical reports are often spread across paper files, scans, and separate laboratory results. This project brings documents, reviewed results, comparisons, and appointments into one application. It is designed around a simple workflow: **import a document, review extracted information, and compare records over time**.
+
+## Development approach
+
+I initiated the project from a practical document-management need and defined the intended user experience. I am developing it with AI-assisted coding tools while learning how the application, database, and OCR worker fit together. This repository documents my progress from identifying a problem to developing a working prototype.
+
+The application includes TypeScript code, an Expo client, Supabase services, an OCR worker packaged with Docker, and a test suite. The technical documentation below explains setup and current limitations.
+
+## Current status and next steps
+
+The core features are available in my local development version. Payment integration and publication on the App Store and Google Play remain planned work. The existing web deployment has separate limitations, including pending cloud-worker operation and end-to-end live verification, detailed below. Local functionality should not be confused with a fully deployed service.
+
+This is a document-organization prototype: it does not diagnose conditions or recommend treatment. Use fictional records when evaluating the demo.
+
+## Présentation en français
+
+Projet personnel de gestion de documents médicaux : classement des comptes rendus, extraction de texte, vérification des résultats et comparaison dans le temps. Je développe cette application avec l’aide d’outils d’IA afin de transformer un besoin concret en un projet d’apprentissage. La version locale et le déploiement sont distingués dans la documentation ; la publication mobile et le paiement restent à finaliser.
+
+---
+
+## Technical documentation
 
 A personal medical document organizer for Android, iOS, and web. Three screens: **Documents**, **Compare**, and **Calendar**. The app presents source information without diagnosing or recommending treatment.
 
